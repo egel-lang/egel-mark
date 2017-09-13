@@ -1,2 +1,3 @@
 # egel-mark
-A commonmark processor in Egel
+
+A commonmark processor in Egel.
