@@ -86,85 +86,85 @@ extern "C" std::vector<VMObjectPtr> egel_exports(VM* vm) {
 
     // parsing
     oo.push_back(ffi3<vm_ptr_t, vm_text_t, vm_int_t, vm_int_t>(vm, "CMark", "cmark_parse_document",
-                [](vm_text_t s, vm_int_t n0, vm_int_t n1){return cmark_parse_document(s,n0,n1);})); //
+                [](vm_text_t s, vm_int_t n0, vm_int_t n1){auto cc = from_uni(s); auto r = cmark_parse_document( cc, n0,n1); delete[] cc; return (vm_ptr_t) r;}).clone());
     // rendering
     oo.push_back(ffi2<vm_text_t, vm_ptr_t, vm_int_t>(vm, "CMark", "cmark_render_html",
-                [](vm_ptr_t p, vm_int_t n){return to_uni(cmark_render_html(p,n));}).clone());
+                [](vm_ptr_t p, vm_int_t n){return to_uni(cmark_render_html( (cmark_node*) p,n));}).clone());
     oo.push_back(ffi2<vm_text_t, vm_ptr_t, vm_int_t>(vm, "CMark", "cmark_render_xml",
-                [](vm_ptr_t p, vm_int_t n){return to_uni(cmark_render_xml(p,n));}).clone());
+                [](vm_ptr_t p, vm_int_t n){return to_uni(cmark_render_xml( (cmark_node*) p,n));}).clone());
     oo.push_back(ffi3<vm_text_t, vm_ptr_t, vm_int_t, vm_int_t>(vm, "CMark", "cmark_render_man",
-                [](vm_ptr_t p, vm_int_t n0, vm_int_t n1){return to_uni(cmark_render_xml(p,n0,n1));}).clone());
+                [](vm_ptr_t p, vm_int_t n0, vm_int_t n1){return to_uni(cmark_render_man( (cmark_node*) p,n0,n1));}).clone());
     oo.push_back(ffi3<vm_text_t, vm_ptr_t, vm_int_t, vm_int_t>(vm, "CMark", "cmark_render_latex",
-                [](vm_ptr_t p, vm_int_t n0, vm_int_t n1){return to_uni(cmark_render_latex(p,n0,n1));}).clone());
+                [](vm_ptr_t p, vm_int_t n0, vm_int_t n1){return to_uni(cmark_render_latex( (cmark_node*) p,n0,n1));}).clone());
     oo.push_back(ffi3<vm_text_t, vm_ptr_t, vm_int_t, vm_int_t>(vm, "CMark", "cmark_render_commonmark",
-                [](vm_ptr_t p, vm_int_t n0, vm_int_t n1){return to_uni(cmark_render_commonmark(p,n0,n1));}).clone());
+                [](vm_ptr_t p, vm_int_t n0, vm_int_t n1){return to_uni(cmark_render_commonmark( (cmark_node*) p,n0,n1));}).clone());
 
 
     // inspection
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_type",
-                [](vm_ptr_t p){return cmark_node_get_type(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_type( (cmark_node*) p);}).clone());
 
     oo.push_back(ffi1<vm_ptr_t, vm_ptr_t>(vm, "CMark", "cmark_node_first_child",
-                [](vm_ptr_t p){return cmark_node_first_child(p);}).clone());
+                [](vm_ptr_t p){return (vm_ptr_t) cmark_node_first_child( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_ptr_t, vm_ptr_t>(vm, "CMark", "cmark_node_next",
-                [](vm_ptr_t p){return cmark_node_next(p);}).clone());
+                [](vm_ptr_t p){return (vm_ptr_t) cmark_node_next( (cmark_node*) p);}).clone());
 
     oo.push_back(ffi1<vm_text_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_literal",
-                [](vm_ptr_t p){return to_uni(cmark_node_get_literal(p);})).clone());
+                [](vm_ptr_t p){return to_uni(cmark_node_get_literal( (cmark_node*) p));}).clone());
     oo.push_back(ffi1<vm_text_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_url",
-                [](vm_ptr_t p){return to_uni(cmark_node_get_url(p);})).clone());
+                [](vm_ptr_t p){return to_uni(cmark_node_get_url( (cmark_node*) p));}).clone());
     oo.push_back(ffi1<vm_text_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_title",
-                [](vm_ptr_t p){return to_uni(cmark_node_get_title(p);})).clone());
+                [](vm_ptr_t p){return to_uni(cmark_node_get_title( (cmark_node*) p));}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_heading_level",
-                [](vm_ptr_t p){return cmark_node_get_heading_level(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_heading_level( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_list_type",
-                [](vm_ptr_t p){return cmark_node_get_list_type(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_list_type( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_bool_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_list_tight",
-                [](vm_ptr_t p){return cmark_node_get_list_tight(p);}).clone());
+                [](vm_ptr_t p){return (vm_bool_t) cmark_node_get_list_tight( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_list_start",
-                [](vm_ptr_t p){return cmark_node_get_list_start(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_list_start( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_list_delim",
-                [](vm_ptr_t p){return cmark_node_get_list_delim(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_list_delim( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_text_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_fence_info",
-                [](vm_ptr_t p){return to_uni(cmark_node_get_fence_info(p);})).clone());
+                [](vm_ptr_t p){return to_uni(cmark_node_get_fence_info( (cmark_node*) p));}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_start_line",
-                [](vm_ptr_t p){return cmark_node_get_start_line(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_start_line( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_start_column",
-                [](vm_ptr_t p){return cmark_node_get_start_column(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_start_column( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_end_line",
-                [](vm_ptr_t p){return cmark_node_get_end_line(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_end_line( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_int_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_end_column",
-                [](vm_ptr_t p){return cmark_node_get_end_column(p);}).clone());
+                [](vm_ptr_t p){return (vm_int_t) cmark_node_get_end_column( (cmark_node*) p);}).clone());
     oo.push_back(ffi1<vm_text_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_on_enter",
-                [](vm_ptr_t p){return to_uni(cmark_node_get_on_enter(p);})).clone());
+                [](vm_ptr_t p){return to_uni(cmark_node_get_on_enter( (cmark_node*) p));}).clone());
     oo.push_back(ffi1<vm_text_t, vm_ptr_t>(vm, "CMark", "cmark_node_get_on_exit",
-                [](vm_ptr_t p){return to_uni(cmark_node_get_on_exit(p);})).clone());
+                [](vm_ptr_t p){return to_uni(cmark_node_get_on_exit( (cmark_node*) p));}).clone());
 
     // construction
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_ptr_t>(vm, "CMark", "cmark_node_append_child",
-                [](vm_ptr_t p0, vm_ptr_t p1){return cmark_node_append_child(p0, p1);).clone());
+                [](vm_ptr_t p0, vm_ptr_t p1){return (vm_int_t) cmark_node_append_child( (cmark_node*) p0,  (cmark_node*) p1);}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_text_t>(vm, "CMark", "cmark_node_set_literal",
-                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_literal(p, cc); delete[] cc; return r;}).clone());
+                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_literal( (cmark_node*) p, cc); delete[] cc; return (vm_int_t) r;}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_text_t>(vm, "CMark", "cmark_node_set_url",
-                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_url(p, cc); delete[] cc; return r;}).clone());
+                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_url( (cmark_node*) p, cc); delete[] cc; return (vm_int_t) r;}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_text_t>(vm, "CMark", "cmark_node_set_title",
-                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_title(p, cc); delete[] cc; return r;}).clone());
+                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_title( (cmark_node*) p, cc); delete[] cc; return (vm_int_t) r;}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_int_t>(vm, "CMark", "cmark_node_set_heading_level",
-                [](vm_ptr_t p, vm_int_t n){return cmark_node_set_heading_level(p, n);}).clone());
+                [](vm_ptr_t p, vm_int_t n){return (vm_int_t) cmark_node_set_heading_level( (cmark_node*) p, n);}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_int_t>(vm, "CMark", "cmark_node_set_list_type",
-                [](vm_ptr_t p, vm_int_t n){return cmark_node_set_list_type(p, n);}).clone());
+                [](vm_ptr_t p, vm_int_t n){return (vm_int_t) cmark_node_set_list_type( (cmark_node*) p, (cmark_list_type) n);}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_bool_t>(vm, "CMark", "cmark_node_set_list_tight",
-                [](vm_ptr_t p, vm_bool_t b){return cmark_node_set_list_tight(p, b);}).clone());
+                [](vm_ptr_t p, vm_bool_t b){return (vm_int_t) cmark_node_set_list_tight( (cmark_node*) p, b);}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_int_t>(vm, "CMark", "cmark_node_set_list_start",
-                [](vm_ptr_t p, vm_int_t n){return cmark_node_set_list_start(p, n);}).clone());
+                [](vm_ptr_t p, vm_int_t n){return (vm_int_t) cmark_node_set_list_start( (cmark_node*) p, n);}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_int_t>(vm, "CMark", "cmark_node_set_list_delim",
-                [](vm_ptr_t p, vm_int_t n){return cmark_node_set_list_delim(p, n);}).clone());
+                [](vm_ptr_t p, vm_int_t n){return (vm_int_t) cmark_node_set_list_delim( (cmark_node*) p, (cmark_delim_type) n);}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_text_t>(vm, "CMark", "cmark_node_set_fence_info",
-                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_fence_info(p, cc); delete[] cc; return r;}).clone());
+                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_fence_info( (cmark_node*) p, cc); delete[] cc; return (vm_int_t) r;}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_text_t>(vm, "CMark", "cmark_node_set_on_enter",
-                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_on_enter(p, cc); delete[] cc; return r;}).clone());
+                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_on_enter( (cmark_node*) p, cc); delete[] cc; return (vm_int_t) r;}).clone());
     oo.push_back(ffi2<vm_int_t, vm_ptr_t, vm_text_t>(vm, "CMark", "cmark_node_set_on_exit",
-                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_on_exit(p, cc); delete[] cc; return r;}).clone());
+                [](vm_ptr_t p, vm_text_t s){auto cc = from_uni(s); auto r = cmark_node_set_on_exit( (cmark_node*) p, cc); delete[] cc; return (vm_int_t) r;}).clone());
 
 
     return oo;
