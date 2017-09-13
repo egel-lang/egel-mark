@@ -2,6 +2,7 @@
 CC=g++ --std=c++0x
 CFLAGS=-c -Wall -pedantic
 LIBS= \
+	  -lcmark \
 	  $(shell pkg-config --libs --cflags icu-uc icu-io)
 LDFLAGS=$(LIBS)
 

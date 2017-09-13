@@ -1,19 +1,28 @@
 #include <egel/runtime.hpp>
 #include <egel/ffi.hpp>
 
+#include <string.h>
+
 #include <cmark.h>
 
 // stubs
 UnicodeString to_uni(const char* cc) {
-    return UnicodeString();
+    return UnicodeString::fromUTF8(StringPiece(cc));
 }
 
 char* from_uni(const UnicodeString& s) {
-    return nullptr;
+    const int STRING_MAX_SIZE = 10000000; // XXX: i hate constants
+    auto len = s.extract(0, STRING_MAX_SIZE, nullptr, (uint32_t) 0);
+    auto buffer = new char[len+1];
+    s.extract(0, STRING_MAX_SIZE, buffer, len+1);
+    return buffer;
 }
 
-int u_strlen(const UnicodeString& cc) {
-    return 0;
+int u_strlen(const UnicodeString& s) {
+    auto cc = from_uni(s);
+    auto r  = strlen(cc);
+    delete[] cc;
+    return r;
 }
 
 extern "C" std::vector<UnicodeString> egel_imports() {
