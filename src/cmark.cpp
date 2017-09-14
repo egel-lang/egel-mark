@@ -32,6 +32,12 @@ extern "C" std::vector<UnicodeString> egel_imports() {
 extern "C" std::vector<VMObjectPtr> egel_exports(VM* vm) {
     std::vector<VMObjectPtr> oo;
 
+    // convenience
+    oo.push_back(ffi1<vm_int_t, vm_text_t>(vm, "CMark", "cmark_strlen",
+                [](vm_text_t s){return (vm_int_t) u_strlen(s);}).clone());
+    oo.push_back(ffi1<vm_bool_t, vm_ptr_t>(vm, "CMark", "cmark_isnull",
+                [](vm_ptr_t p){return (vm_bool_t) ( p == nullptr) ;}).clone());
+
     /* enums and constants */
 
     // node types
@@ -82,10 +88,6 @@ extern "C" std::vector<VMObjectPtr> egel_exports(VM* vm) {
     oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_opt_smart", []() { return (vm_int_t) CMARK_OPT_SMART;}).clone());
 
     /* combinators */
-
-    // convenience
-    oo.push_back(ffi1<vm_int_t, vm_text_t>(vm, "CMark", "cmark_strlen",
-                [](vm_text_t s){return (vm_int_t) u_strlen(s);}).clone());
 
     // node construction
     oo.push_back(ffi1<vm_ptr_t, vm_int_t>(vm, "CMark", "cmark_node_new",

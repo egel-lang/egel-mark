@@ -8,6 +8,9 @@ namespace CMark (
     // cmark node
     data node
 
+    // position
+    data pos_info
+
     // node types
     data document, thematic_break, paragraph, block_quote, html_block,
          custom_block, code_block, list, item, heading, emph, strong,
@@ -17,23 +20,32 @@ namespace CMark (
     // list types
     data ordered_list, bullet_list
 
-    // list delimeters
+    // list delimiters
     data period_delim, paren_delim
 
     // C constant to list type
-    def from_node_listtype =
+    def to_listtype =
         [ CONST ->
             if CONST == cmark_ordered_list then ordered_list
             else bullet_list ]
 
     // C constant to list delimiter
-    def from_node_listdelim =
+    def to_listdelim =
         [ CONST ->
             if CONST == cmark_period_delim then period_delim
             else paren_delim ]
 
+    // C node type to position
+    def to_node_position =
+        [ PTR ->
+            let N0 = cmark_node_get_start_line PTR in
+            let N1 = cmark_node_get_end_line PTR in
+            let N2 = cmark_node_get_start_column PTR in
+            let N3 = cmark_node_get_end_column PTR in
+                pos_info N0 N1 N2 N3 ]
+
     // C node type conversion
-    def from_node_type =
+    def to_node_type =
         [ PTR, CONST ->
            if CONST == cmark_node_document then
              document
@@ -54,7 +66,7 @@ namespace CMark (
              let DL = cmark_node_get_list_delim PTR in
              let T  = cmark_node_get_list_tight PTR in
              let S  = cmark_node_get_list_start PTR in
-                list (from_node_listtype TP) (from_node_listdelim DL) T S
+                list (to_listtype TP) (to_listdelim DL) T S
            else if CONST == cmark_node_item then
              item
            else if CONST == cmark_node_heading then
@@ -81,14 +93,140 @@ namespace CMark (
              linebreak
             else throw "unknown cmark node type" ]
 
-    def from_node =
+    // convert children
+    def to_nodes =
         [ PTR ->
-            let TYPE = cmark_node_get_type PTR in
-                TYPE ]
-                
+            if cmark_isnull PTR then nil
+            else let N  = to_node PTR in
+                 let NN = to_nodes (cmark_node_next PTR) in
+                    cons N NN ]
 
-    def to_node = [ X -> X ]
+    // convert cmark node pointer to node
+    def to_node =
+        [ PTR ->
+            let POS  = to_node_position PTR in
+            let TYPE = to_node_type PTR (cmark_node_get_type PTR) in
+            let NN   = to_nodes (cmark_node_first_child PTR) in
+                node POS TYPE NN ]
+
+    // convert node type to cmark node pointer
+    def from_node_type =
+        [ document -> cmark_node_new cmark_node_document
+        | thematic_break -> cmark_node_new cmark_node_thematic_break
+        | paragraph -> cmark_node_new cmark_node_paragraph
+        | block_quote -> cmark_node_new cmark_node_block_quote
+        | html_block LITERAL ->
+            let PTR = cmark_node_new cmark_node_html_block in
+            let _ = cmark_node_set_literal PTR LITERAL in PTR
+        | custom_block ONENTER ONEXIT ->
+            let PTR = cmark_node_new cmark_node_custom_block in
+            let _ = cmark_node_set_on_enter PTR ONENTER in
+            let _ = cmark_node_set_on_exit  PTR ONEXIT in PTR
+        | code_block INFO LITERAL ->
+            let PTR = cmark_node_new cmark_node_code_block in
+            let _ = cmark_node_set_literal PTR LITERAL in
+            let _ = cmark_node_set_fence_info PTR INFO in PTR
+        | list TYPE DELIM T S ->
+            let PTR = cmark_node_new cmark_node_list in
+            let _ = cmark_node_set_list_type PTR
+                    ([ ordered_list -> cmark_ordered_list | _ -> cmark_bullet_list ] TYPE) in
+            let _ = cmark_node_set_list_delim PTR
+                    ([ period_delim -> cmark_period_delim | _ -> cmark_paren_delim ] DELIM) in
+            let _ = cmark_node_set_list_tight PTR T in
+            let _ = cmark_node_set_list_start PTR S in
+                         PTR
+        | item -> cmark_node_new cmark_node_item
+        | heading LEV ->
+            let PTR = cmark_node_new cmark_node_heading in
+            let _ = cmark_node_set_heading_level PTR LEV in PTR
+        | emph -> cmark_node_new cmark_node_emph
+        | strong -> cmark_node_new cmark_node_strong
+        | link URL TITLE ->
+            let PTR = cmark_node_new cmark_node_link in
+            let _ = cmark_node_set_url PTR URL in
+            let _ = cmark_node_set_title PTR TITLE in PTR
+        | image URL TITLE ->
+            let PTR = cmark_node_new cmark_node_image in
+            let _ = cmark_node_set_url PTR URL in
+            let _ = cmark_node_set_title PTR TITLE in PTR
+        | text LITERAL ->
+            let PTR = cmark_node_new cmark_node_text in
+            let _ = cmark_node_set_literal PTR LITERAL in PTR
+        | code LITERAL ->
+            let PTR = cmark_node_new cmark_node_code in
+            let _ = cmark_node_set_literal PTR LITERAL in PTR
+        | html_inline LITERAL ->
+            let PTR = cmark_node_new cmark_node_html_inline in
+            let _ = cmark_node_set_literal PTR LITERAL in PTR
+        | custom_inline ONENTER ONEXIT ->
+            let PTR = cmark_node_new cmark_node_custom_inline in
+            let _ = cmark_node_set_on_enter PTR ONENTER in
+            let _ = cmark_node_set_on_exit  PTR ONEXIT in PTR
+        | softbreak -> cmark_node_new cmark_node_softbreak
+        | linebreak -> cmark_node_new cmark_node_linebreak ]
+
+    // convert nodes to cmark pointer children
+    def from_nodes =
+        [ PTR, nil -> nop
+        | PTR, cons N NN ->
+            let _ = cmark_node_append_child PTR (from_node N) in from_nodes PTR NN ]
+
+    // convert node to cmark pointer
+    def from_node =
+        [ node _ TYPE NN ->
+            let PTR = from_node_type TYPE in
+            let _ = from_nodes PTR NN in PTR ]
+
+    def parse =
+        [ S -> 
+            let N = cmark_strlen S in
+            let PTR = cmark_parse_document S N 0 in
+            let NODE = to_node PTR in
+            let _ = cmark_node_free PTR in NODE ]
+
+    def xml =
+        [ NODE -> 
+            let PTR = from_node NODE in
+            let S = cmark_render_xml PTR 0 in
+            let _ = cmark_node_free PTR in S ]
+
+    def html =
+        [ NODE -> 
+            let PTR = from_node NODE in
+            let S = cmark_render_html PTR 0 in
+            let _ = cmark_node_free PTR in S ]
+
+    def man =
+        [ NODE -> 
+            let PTR = from_node NODE in
+            let S = cmark_render_man PTR 0 70 in
+            let _ = cmark_node_free PTR in S ]
+
+    def commonmark =
+        [ NODE -> 
+            let PTR = from_node NODE in
+            let S = cmark_render_commonmark PTR 0 70 in
+            let _ = cmark_node_free PTR in S ]
+
+    def latex =
+        [ NODE -> 
+            let PTR = from_node NODE in
+            let S = cmark_render_latex PTR 0 70 in
+            let _ = cmark_node_free PTR in S ]
 
 )
 
+using System
+using CMark
 
+
+def test0 =
+    "# hello world\nThis is some *text*."
+
+def test1 =
+    "<what />"
+
+def test2 =
+    "<what about='this' and=\'all\'># yes? </what>"
+
+def main = man (parse test0)
