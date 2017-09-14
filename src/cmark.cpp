@@ -37,7 +37,7 @@ extern "C" std::vector<VMObjectPtr> egel_exports(VM* vm) {
     // node types
     oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_node_node", []() { return (vm_int_t) CMARK_NODE_NONE;}).clone());
     oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_node_document", []() { return (vm_int_t) CMARK_NODE_DOCUMENT;}).clone());
-    oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_block_quote", []() { return (vm_int_t) CMARK_NODE_BLOCK_QUOTE;}).clone());
+    oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_node_block_quote", []() { return (vm_int_t) CMARK_NODE_BLOCK_QUOTE;}).clone());
     oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_node_list", []() { return (vm_int_t) CMARK_NODE_LIST;}).clone());
     oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_node_item", []() { return (vm_int_t) CMARK_NODE_ITEM;}).clone());
     oo.push_back(ffi0<vm_int_t>(vm, "CMark", "cmark_node_code_block", []() { return (vm_int_t) CMARK_NODE_CODE_BLOCK;}).clone());

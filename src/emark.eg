@@ -1,0 +1,94 @@
+import "prelude.eg"
+import "cmark.ego"
+
+namespace CMark (
+
+    using System
+
+    // cmark node
+    data node
+
+    // node types
+    data document, thematic_break, paragraph, block_quote, html_block,
+         custom_block, code_block, list, item, heading, emph, strong,
+         link, image, text, code, html_inline, custom_inline,
+         softbreak, linebreak
+
+    // list types
+    data ordered_list, bullet_list
+
+    // list delimeters
+    data period_delim, paren_delim
+
+    // C constant to list type
+    def from_node_listtype =
+        [ CONST ->
+            if CONST == cmark_ordered_list then ordered_list
+            else bullet_list ]
+
+    // C constant to list delimiter
+    def from_node_listdelim =
+        [ CONST ->
+            if CONST == cmark_period_delim then period_delim
+            else paren_delim ]
+
+    // C node type conversion
+    def from_node_type =
+        [ PTR, CONST ->
+           if CONST == cmark_node_document then
+             document
+           else if CONST == cmark_node_thematic_break then
+             thematic_break
+           else if CONST == cmark_node_paragraph then
+             paragraph
+           else if CONST == cmark_node_block_quote then
+             block_quote
+           else if CONST == cmark_node_html_block then
+             html_block (cmark_node_get_literal PTR)
+           else if CONST == cmark_node_custom_block then
+             custom_block (cmark_node_get_on_enter PTR) (cmark_node_get_on_exit PTR)
+           else if CONST == cmark_node_code_block then
+             code_block (cmark_node_get_fence_info PTR) (cmark_node_get_literal PTR)
+           else if CONST == cmark_node_list then
+             let TP = cmark_node_get_list_type PTR in
+             let DL = cmark_node_get_list_delim PTR in
+             let T  = cmark_node_get_list_tight PTR in
+             let S  = cmark_node_get_list_start PTR in
+                list (from_node_listtype TP) (from_node_listdelim DL) T S
+           else if CONST == cmark_node_item then
+             item
+           else if CONST == cmark_node_heading then
+             heading (cmark_node_get_heading_level PTR)
+           else if CONST == cmark_node_emph then
+             emph
+           else if CONST == cmark_node_strong then
+             strong
+           else if CONST == cmark_node_link then
+             link (cmark_node_get_url PTR) (cmark_node_get_title PTR)
+           else if CONST == cmark_node_image then
+             image (cmark_node_get_url PTR) (cmark_node_get_title PTR)
+           else if CONST == cmark_node_text then
+             text (cmark_node_get_literal PTR)
+           else if CONST == cmark_node_code then
+             code (cmark_node_get_literal PTR)
+           else if CONST == cmark_node_html_inline then
+             html_inline (cmark_node_get_literal PTR)
+           else if CONST == cmark_node_custom_inline then
+             custom_inline (cmark_node_get_on_enter PTR) (cmark_node_get_on_exit PTR)
+           else if CONST == cmark_node_softbreak then
+             softbreak
+           else if CONST == cmark_node_linebreak then
+             linebreak
+            else throw "unknown cmark node type" ]
+
+    def from_node =
+        [ PTR ->
+            let TYPE = cmark_node_get_type PTR in
+                TYPE ]
+                
+
+    def to_node = [ X -> X ]
+
+)
+
+
