@@ -177,6 +177,7 @@ namespace CMark (
             let PTR = from_node_type TYPE in
             let _ = from_nodes PTR NN in PTR ]
 
+    // parse a string to a node
     def parse =
         [ S -> 
             let N = cmark_strlen S in
@@ -184,30 +185,35 @@ namespace CMark (
             let NODE = to_node PTR in
             let _ = cmark_node_free PTR in NODE ]
 
+    // node to string holding xml
     def xml =
         [ NODE -> 
             let PTR = from_node NODE in
             let S = cmark_render_xml PTR 0 in
             let _ = cmark_node_free PTR in S ]
 
+    // node to string holding html
     def html =
         [ NODE -> 
             let PTR = from_node NODE in
             let S = cmark_render_html PTR 0 in
             let _ = cmark_node_free PTR in S ]
 
+    // node to string holding manpage markup
     def man =
         [ NODE -> 
             let PTR = from_node NODE in
             let S = cmark_render_man PTR 0 70 in
             let _ = cmark_node_free PTR in S ]
 
+    // node to string holding commonmark
     def commonmark =
         [ NODE -> 
             let PTR = from_node NODE in
             let S = cmark_render_commonmark PTR 0 70 in
             let _ = cmark_node_free PTR in S ]
 
+    // node to latex
     def latex =
         [ NODE -> 
             let PTR = from_node NODE in
@@ -216,12 +222,75 @@ namespace CMark (
 
 )
 
+namespace CMark (
+
+    using System
+
+    def transform_nodes =
+        [ F, X, nil -> (X, nil)
+        | F, X, cons N NN ->
+            let (X, N) = F X N in
+            let (X, NN) = transform_nodes F X NN in
+                (X, cons N NN) ]
+
+    def transform_node =
+        [ F, X, node POSINFO TYPE NN ->
+            let (X, NN) = transform_nodes F X NN in
+                (X, node POSINFO TYPE NN) ]
+
+    def visit_to_transform =
+        [ F, X, N -> let X = F X N in (X, N) ]
+
+    def visit_from_transform =
+        [ F, X, N -> let (X, N) = F X N in X ]
+
+    def visit_node =
+        [ F -> visit_from_transform (transform_node (visit_to_transform F)) ]
+
+    def visit_nodes =
+        [ F -> visit_from_transform (transform_nodes (visit_to_transform F)) ]
+
+    def reshape_to_transform =
+        [ F, X, N -> let N = F X N in (nop, N) ]
+
+    def reshape_from_transform =
+        [ F, X, N -> let (X, N) = F X N in N ]
+
+    def reshape_node =
+        [ F -> reshape_from_transform (transform_node (reshape_to_transform F)) ]
+
+    def reshape_nodes =
+        [ F -> reshape_from_transform (transform_nodes (reshape_to_transform F)) ]
+)
+
+namespace CMark (
+
+    using System
+
+    def head = [ cons X XX -> X ]
+
+    def extract_text =
+        [ S0, node _ (text S1) NN ->
+            let SS = visit_nodes extract_text "" NN in
+                S0 + S1 + SS
+        | S, N -> visit_node extract_text S N ]
+
+    def extract_toc =
+        [ TT, node POS (heading LEV) NN ->
+            let S = extract_text "" (node POS (heading LEV) NN) in
+            let T = heading LEV S in
+                cons T TT
+        | TT, N -> visit_node extract_toc TT N ]
+
+)
+
+
 using System
 using CMark
 
 
 def test0 =
-    "# hello world\nThis is some *text*."
+    "# hello world\nThis is some *text*.\n## More **text**."
 
 def test1 =
     "<what />"
@@ -229,4 +298,4 @@ def test1 =
 def test2 =
     "<what about='this' and=\'all\'># yes? </what>"
 
-def main = man (parse test0)
+def main = extract_toc nil (parse test0)
