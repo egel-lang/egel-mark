@@ -226,6 +226,7 @@ namespace CMark (
 
     using System
 
+    // take a transformation and a value and apply it to nodes
     def transform_nodes =
         [ F, X, nil -> (X, nil)
         | F, X, cons N NN ->
@@ -233,32 +234,41 @@ namespace CMark (
             let (X, NN) = transform_nodes F X NN in
                 (X, cons N NN) ]
 
+    // take a transformation and a value and apply it to a node
     def transform_node =
         [ F, X, node POSINFO TYPE NN ->
             let (X, NN) = transform_nodes F X NN in
                 (X, node POSINFO TYPE NN) ]
 
+    // change a visitor function to a transform
     def visit_to_transform =
         [ F, X, N -> let X = F X N in (X, N) ]
 
+    // change a transform function to a visit
     def visit_from_transform =
         [ F, X, N -> let (X, N) = F X N in X ]
 
+    // visit a node
     def visit_node =
         [ F -> visit_from_transform (transform_node (visit_to_transform F)) ]
 
+    // visit a list of nodes
     def visit_nodes =
         [ F -> visit_from_transform (transform_nodes (visit_to_transform F)) ]
 
+    // change a reshape function to a transform
     def reshape_to_transform =
         [ F, X, N -> let N = F X N in (nop, N) ]
 
+    // change a transform function to a reshape
     def reshape_from_transform =
         [ F, X, N -> let (X, N) = F X N in N ]
 
+    // reshape a node
     def reshape_node =
         [ F -> reshape_from_transform (transform_node (reshape_to_transform F)) ]
 
+    // reshape a list of nodes
     def reshape_nodes =
         [ F -> reshape_from_transform (transform_nodes (reshape_to_transform F)) ]
 )
@@ -266,8 +276,8 @@ namespace CMark (
 namespace CMark (
 
     using System
+    using List
 
-    def head = [ cons X XX -> X ]
 
     def extract_text =
         [ S0, node _ (text S1) NN ->
